@@ -1,282 +1,77 @@
+<style>
+  /* HANYA 2 BARIS CSS TAMBAHAN */
+  /* Memberi jarak kanan pada tombol Excel dan Show Entries */
+  .dt-buttons, .dataTables_length { margin-right: 15px !important; }
+  /* Menyembunyikan judul halaman bawaan */
+  .content-header { display: none; }
+</style>
+
 <?php
-$sql = "SELECT * FROM devices WHERE active = 'Yes'";
-$result = mysqli_query($conn, $sql);
+// ARRAY JUDUL KOLOM (Agar tidak perlu menulis tag <th> 19 kali)
+$columns = [
+  "No", "TIMESTAMP", "EMAIL ADDRESS", "PILIH SALAH SATU", "SECTION NO", 
+  "VIBRASI/GETARAN", "TEMP. BEARING DE", "TEMP. BEARING NDE", "SUHU RUANGAN", 
+  "BEBAN GENERATOR", "OPENING DAMPER", "LOAD CURRENT", "BUNYI MOTOR", 
+  "PANEL LOCAL", "KELENGKAPAN", "KEBERSIHAN", "GROUNDING", "REGREASING", "ACTIONS"
+];
 ?>
 
-<div class="content-wrapper">
-  <!-- Content Header (Page header) -->
-  <div class="content-header">
-    <div class="container-fluid">
-      <div class="row mb-2">
-        <div class="col-sm-6">
-          <h1 class="m-0">Dashboard</h1>
-        </div><!-- /.col -->
-      </div><!-- /.row -->
-    </div><!-- /.container-fluid -->
-  </div>
-  <!-- /.content-header -->
-
-  <!-- Main content -->
-  <div class="content">
-    <div class="container-fluid">
-
-      <div class="row">
-        <div class="col-12">
-          <div class="card">
-            <div class="card-body">
-              <div class="row">
-
-
-                <div class="col-6 col-md-3 text-center">
-                  <input type="text" class="knob-max-380" value="0" id="voltvalue" readonly>
-                  <div class="knob-label">TEGANGAN</div>
-                </div>
-
-                <div class="col-6 col-md-3 text-center">
-                  <input type="text" class="knob-max-100" value="0" id="hzvalue" readonly>
-                  <div class="knob-label">FREKUENSI</div>
-                </div>
-
-                <div class="col-6 col-md-3 text-center">
-                  <input type="text" class="knob-max-50" value="0" id="arusvalue" readonly>
-                  <div class="knob-label">AMPER</div>
-                </div>
-
-                <div class="col-6 col-md-3 text-center">
-                  <input type="text" class="knob-max-2000" value="0" id="powervalue" readonly>
-                  <div class="knob-label">DAYA</div>
-                </div>
-
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col-12">
-          <div class="card">
-            <div class="card-body">
-              <div class="row">
-
-                <div class="col-12 col-md-3 text-center">
-                  <div class="card card-secondary output-card">
-                    <div class="card-header">
-                      <h3 class="card-title">OUTPUT A</h3>
-                    </div>
-
-                    <div class="card-body table-responsive pad">
-                      <div class="onoff-pill btn-group btn-group-toggle">
-                        <label class="btn btn-secondary switch-option" id="ch-outA-0">
-                          <input type="radio" name="outA" onchange="publishoutA()" id="outA-0" autocomplete="off">OFF
-                        </label>
-                        <label class="btn btn-secondary switch-option" id="ch-outA-1">
-                          <input type="radio" name="outA" onchange="publishoutA()" id="outA-1" autocomplete="off">ON
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="col-12 col-md-3 text-center">
-                  <div class="card card-secondary output-card">
-                    <div class="card-header">
-                      <h3 class="card-title">OUTPUT B</h3>
-                    </div>
-                    <div class="card-body table-responsive pad">
-                      <div class="onoff-pill btn-group btn-group-toggle">
-                        <label class="btn btn-secondary switch-option" id="ch-outB-0">
-                          <input type="radio" name="outB" onchange="publishoutB()" id="outB-0" autocomplete="off">OFF
-                        </label>
-                        <label class="btn btn-secondary switch-option" id="ch-outB-1">
-                          <input type="radio" name="outB" onchange="publishoutB()" id="outB-1" autocomplete="off">ON
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="col-12 col-md-3 text-center">
-                  <div class="card card-secondary output-card">
-                    <div class="card-header">
-                      <h3 class="card-title">OUTPUT C</h3>
-                    </div>
-                    <div class="card-body table-responsive pad">
-                      <div class="onoff-pill btn-group btn-group-toggle">
-                        <label class="btn btn-secondary switch-option" id="ch-outC-0">
-                          <input type="radio" name="outC" onchange="publishoutC()" id="outC-0" autocomplete="off">OFF
-                        </label>
-                        <label class="btn btn-secondary switch-option" id="ch-outC-1">
-                          <input type="radio" name="outC" onchange="publishoutC()" id="outC-1" autocomplete="off">ON
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="col-12 col-md-3 text-center">
-                  <div class="card card-secondary output-card">
-                    <div class="card-header">
-                      <h3 class="card-title">OUTPUT D</h3>
-                    </div>
-                    <div class="card-body table-responsive pad">
-                      <div class="onoff-pill btn-group btn-group-toggle">
-                        <label class="btn btn-secondary switch-option" id="ch-outD-0">
-                          <input type="radio" name="outD" onchange="publishoutD()" id="outD-0" autocomplete="off">OFF
-                        </label>
-                        <label class="btn btn-secondary switch-option" id="ch-outD-1">
-                          <input type="radio" name="outD" onchange="publishoutD()" id="outD-1" autocomplete="off">ON
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Main content -->
-      <section class="content">
-        <div class="container-fluid">
-
-          <div class="row">
-            <div class="col-md-6">
-
-              <div class="card card-primary card-outline">
-                <div class="card-header bg-primary">
-                  <h3 class="card-title">
-                    <i class="far fa-chart-bar"></i>
-                    VOLTAGE
-                  </h3>
-
-                  <div class="card-tools">
-                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                      <i class="fas fa-minus"></i>
-                    </button>
-                    <button type="button" class="btn btn-tool" data-card-widget="remove">
-                      <i class="fas fa-times"></i>
-                    </button>
-                  </div>
-                </div>
-                <div class="card-body">
-                  <div id="chart-voltage" style="height:300px;"></div>
-                </div>
-              </div>
-
-              <div class="card card-success card-outline">
-                <div class="card-header bg-success">
-                  <h3 class="card-title">
-                    <i class="far fa-chart-bar"></i>
-                    FREQUENCY
-                  </h3>
-
-                  <div class="card-tools">
-                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                      <i class="fas fa-minus"></i>
-                    </button>
-                    <button type="button" class="btn btn-tool" data-card-widget="remove">
-                      <i class="fas fa-times"></i>
-                    </button>
-                  </div>
-                </div>
-                <div class="card-body">
-                  <div id="chart-frequency" style="height:300px;"></div>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-md-6">
-              <div class="card card-danger card-outline">
-                <div class="card-header bg-danger">
-                  <h3 class="card-title">
-                    <i class="far fa-chart-bar"></i>
-                    CURRENT
-                  </h3>
-
-                  <div class="card-tools">
-                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                      <i class="fas fa-minus"></i>
-                    </button>
-                    <button type="button" class="btn btn-tool" data-card-widget="remove">
-                      <i class="fas fa-times"></i>
-                    </button>
-                  </div>
-                </div>
-                <div class="card-body">
-                  <div id="chart-amper" style="height:300px;"></div>
-                </div>
-              </div>
-
-              <div class="card card-warning card-outline">
-                <div class="card-header bg-warning">
-                  <h3 class="card-title">
-                    <i class="far fa-chart-bar"></i>
-                    DAYA
-                  </h3>
-
-                  <div class="card-tools">
-                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                      <i class="fas fa-minus"></i>
-                    </button>
-                    <button type="button" class="btn btn-tool" data-card-widget="remove">
-                      <i class="fas fa-times"></i>
-                    </button>
-                  </div>
-                </div>
-                <div class="card-body">
-                  <div id="chart-power" style="height:300px;"></div>
-                </div>
-              </div>
-
-            </div>
-          </div>
-          <!-- /.row -->
-        </div><!-- /.container-fluid -->
-      </section>
-
-
-      <div class="row">
-        <!--STATUS -->
-        <div class="col-12">
-          <div class="card card-primary">
-            <div class="card-header">
-              <h3 class="card-title">Status Perangkat</h3>
-            </div>
-            <!-- /.card-header -->
-            <div class="card-body table-responsive p-0" style="height: 300px;">
-              <table class="table table-head-fixed text-nowrap">
-                <thead>
-                  <tr>
-                    <th>Serial number</th>
-                    <th>location</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <?php while ($row = mysqli_fetch_assoc($result)) { ?>
+<div class="content-wrapper" style="background-color: #f4f6f9;">
+  
+  <section class="content pt-2 px-2">
+    <div class="container-fluid p-0">
+      <div class="row m-0">
+        <div class="col-12 p-0">
+          
+          <div class="card card-primary card-outline m-0 border shadow-none">
+            
+            <div class="card-body p-0 bg-white">
+              <div class="table-responsive">
+                
+                <table id="example1" class="table table-bordered table-striped table-hover text-nowrap m-0">
+                  <thead class="bg-primary text-white">
                     <tr>
-                      <td><?php echo $row['serial_number'] ?></td>
-                      <td><?php echo $row['location'] ?></td>
-                      <td style="color:red;" id="panelsound/status/<?php echo $row['serial_number'] ?>">Offline</td>
+                      <?php foreach ($columns as $col): ?>
+                        <th class="<?php echo ($col == 'No' || $col == 'ACTIONS') ? 'text-center' : ''; ?>" 
+                            <?php echo ($col == 'No') ? 'style="width: 50px;"' : ''; ?>>
+                            <?= $col ?>
+                        </th>
+                      <?php endforeach; ?>
                     </tr>
-                  <?php } ?>
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="text-center">1</td>
+                      <td>2023-10-27 08:00:00</td>
+                      <td>teknisi1@tonasa.co.id</td>
+                      <td>Unit A</td>
+                      <td>Sect-01</td>
+                      <td>Normal</td>
+                      <td>65°C</td>
+                      <td>62°C</td>
+                      <td>30°C</td>
+                      <td>800 kW</td>
+                      <td>50%</td>
+                      <td>120 A</td>
+                      <td>Halus</td>
+                      <td>Start</td>
+                      <td>Lengkap</td>
+                      <td>Bersih</td>
+                      <td>OK</td>
+                      <td>Done</td>
+                      <td class="text-center">
+                        <span class="badge badge-success">Tercatat</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+
+              </div>
             </div>
-            <!-- /.card-body -->
           </div>
-          <!-- /.card -->
+
         </div>
-        <!-- /.col-md-6 -->
       </div>
-
-      <!-- /.row -->
-    </div><!-- /.container-fluid -->
-  </div>
-  <!-- /.content -->
+    </div>
+  </section>
 </div>
-
-<!-- MQTT script moved to index.php to ensure jQuery/plugins load first -->
