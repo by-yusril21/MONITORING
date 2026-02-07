@@ -1,13 +1,48 @@
 <style>
-  /* HANYA 2 BARIS CSS TAMBAHAN */
-  /* Memberi jarak kanan pada tombol Excel dan Show Entries */
-  .dt-buttons, .dataTables_length { margin-right: 15px !important; }
-  /* Menyembunyikan judul halaman bawaan */
+  /* --- SETUP GLOBAL --- */
+  .content-wrapper { background-color: #f4f6f9 !important; }
   .content-header { display: none; }
+
+  /* --- KUNCI AGAR SEJAJAR RAPI (FORCED HEIGHT) --- */
+  /* Memaksa semua elemen input dan tombol memiliki tinggi 32px */
+  .dataTables_filter input, 
+  .dataTables_length select, 
+  .dt-buttons .btn,
+  #pilihUnit, 
+  #pilihMotor, 
+  #btnRefresh {
+      height: 32px !important;
+      line-height: 1.5 !important;
+      padding-top: 3px !important;
+      padding-bottom: 3px !important;
+      font-size: 14px !important;
+      vertical-align: middle !important;
+      border-radius: 4px !important;
+  }
+
+  /* --- JARAK ANTAR ELEMEN --- */
+  .dataTables_wrapper .row:first-child {
+      padding: 8px 10px;
+      background-color: white;
+      border-bottom: 1px solid #dee2e6;
+  }
+
+  /* Margin Kanan (Area Search & Excel) */
+  .dataTables_filter input { margin-left: 10px !important; width: 150px !important; display: inline-block !important; }
+  .dataTables_length select { margin: 0 5px !important; display: inline-block !important; }
+  .dt-buttons { margin-left: 10px !important; }
+
+  /* Margin Kiri (Area Filter) */
+  .custom-toolbar-item { margin-right: 5px; }
+
+  /* Reset Label */
+  .dataTables_filter label, .dataTables_length label {
+      margin-bottom: 0 !important;
+      font-weight: normal !important;
+  }
 </style>
 
 <?php
-// ARRAY JUDUL KOLOM (Agar tidak perlu menulis tag <th> 19 kali)
 $columns = [
   "No", "TIMESTAMP", "EMAIL ADDRESS", "PILIH SALAH SATU", "SECTION NO", 
   "VIBRASI/GETARAN", "TEMP. BEARING DE", "TEMP. BEARING NDE", "SUHU RUANGAN", 
@@ -17,17 +52,33 @@ $columns = [
 ?>
 
 <div class="content-wrapper" style="background-color: #f4f6f9;">
-  
+
+  <div id="my-filter-source" class="d-none">
+      <div class="d-flex align-items-center">
+          
+          <select id="pilihUnit" class="form-control custom-select-sm custom-toolbar-item" style="width: 150px;">
+              <option value="">-- Pilih Unit --</option>
+              <option value="6KV">PLTU UNIT C 6KV</option>
+              <option value="380">PLTU UNIT C 380</option>
+          </select>
+
+          <select id="pilihMotor" class="form-control custom-select-sm custom-toolbar-item" style="width: 220px;" disabled>
+              <option value="">-- Pilih Motor --</option>
+          </select>
+
+          <button type="button" id="btnRefresh" class="btn btn-info btn-sm custom-toolbar-item" title="Refresh Data">
+              <i class="fas fa-sync-alt"></i>
+          </button>
+      </div>
+  </div>
   <section class="content pt-2 px-2">
     <div class="container-fluid p-0">
       <div class="row m-0">
         <div class="col-12 p-0">
           
           <div class="card card-primary card-outline m-0 border shadow-none">
-            
-            <div class="card-body p-0 bg-white">
+            <div class="card-body bg-white p-0">
               <div class="table-responsive">
-                
                 <table id="example1" class="table table-bordered table-striped table-hover text-nowrap m-0">
                   <thead class="bg-primary text-white">
                     <tr>
@@ -59,13 +110,10 @@ $columns = [
                       <td>Bersih</td>
                       <td>OK</td>
                       <td>Done</td>
-                      <td class="text-center">
-                        <span class="badge badge-success">Tercatat</span>
-                      </td>
+                      <td class="text-center"><span class="badge badge-success">Tercatat</span></td>
                     </tr>
                   </tbody>
                 </table>
-
               </div>
             </div>
           </div>

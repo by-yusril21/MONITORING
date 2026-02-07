@@ -5,30 +5,29 @@ $delete = false;
 $deleteTerminal = false;
 $reset_id = false;
 
-// 1. Cek Login (Wajib ada di paling atas)
+// 1. Cek Login
 if (!isset($_SESSION['username'])) {
   echo "<script> location.href='login.php'; </script>";
   exit;
 }
 
-// 2. Include Konfigurasi Database & Bagian Layout
+// 2. Include Konfigurasi & Layout
 include "config/database.php";
-include "inc/header.php";   // Pastikan file ini memuat CSS AdminLTE & DataTables
+include "inc/header.php";
 include "inc/navbar.php";
 include "inc/sidebar.php";
 include "inc/alerts.php";
 
-// 3. Logika Halaman Dinamis (Routing)
+// 3. Logika Routing Halaman
 if (isset($_GET['page'])) {
   $page = $_GET['page'];
-  // Cek apakah file page benar-benar ada
   if (file_exists("page/" . $page . ".php")) {
     include "page/" . $page . ".php";
   } else {
-    include "page/dashboard.php"; // Halaman default jika tidak ketemu
+    include "page/dashboard.php";
   }
 } else {
-  include "page/dashboard.php"; // Halaman default awal
+  include "page/dashboard.php";
 }
 ?>
 
@@ -49,28 +48,42 @@ if (isset($_GET['page'])) {
 <script src="plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
 
 <script src="plugins/toastr/toastr.min.js"></script>
-
 <script src="dist/js/adminlte.min.js"></script>
 
 <?php
 if ($delete == true) {
-  echo "<script>toastr.success('Data berhasil dihapus.');</script>";
+  echo "<script>toastr.success('Data sensor berhasil dihapus.');</script>";
+} else if ($deleteTerminal == true) {
+  echo "<script>toastr.success('Data terminal berhasil dihapus.');</script>";
 } else if ($reset_id == true) {
   echo "<script>toastr.success('Data di-reset.');</script>";
 }
 ?>
 
 <script>
-  $(function () {
-    $("#example1").DataTable({
-      // KONFIGURASI TAMPILAN (DOM) DENGAN CLASS BOOTSTRAP:
-      // - row m-0: Baris tanpa margin
-      // - bg-white: Latar putih
-      // - p-2: Padding (jarak dalam) sekitar 8px
-      // - border-bottom: Garis pemisah di bawah tombol
-      // - d-flex align-items-center: Membuat tombol Excel, Show entries, Search sejajar satu baris
+  // 1. DATA MOTOR
+  const dataMotor = {
+    "6KV": [
+      "BOILER FEED WATER PUMP A", "BOILER FEED WATER PUMP B", "COAL MILL C",
+      "FORCED DRAFT FAN C", "PULVERIZED FAN C", "INDUCED DRAFT FAN C",
+      "VENT GAS FAN C", "SEA WATER INTAKE PUMP A", "SEA WATER INTAKE PUMP C"
+    ],
+    "380": [
+      "EJECTOR PUMP A", "EJECTOR PUMP B", "PULVERIZED COAL FAN C",
+      "MILL SEAL AIR FAN C", "CONDENSATE PUMP A", "CONDENSATE PUMP B",
+      "IGNITER AIR FAN C", "BLOWER PFISTER C", "GAS AIR HEATER C"
+    ]
+  };
 
-      "dom": "<'row m-0 bg-white border-bottom p-2'<'col-12 d-flex align-items-center' B l f>>" +
+  $(document).ready(function () {
+
+    // --- KONFIGURASI DATATABLES ---
+    var table = $("#example1").DataTable({
+      // DOM CONFIG: Satu baris rapi
+      // align-items-center: Wajib agar vertikal rata tengah
+      "dom": "<'row m-0 bg-white border-bottom p-2 align-items-center'" +
+        "<'col-md-7 d-flex align-items-center' <'#my-filter-placeholder'>>" +
+        "<'col-md-5 d-flex align-items-center justify-content-end' f l B>>" +
         "<'row m-0'<'col-12 p-0'tr>>" +
         "<'row m-0 p-2 bg-white'<'col-md-5'i><'col-md-7'p>>",
 
@@ -81,28 +94,78 @@ if ($delete == true) {
       "searching": true,
       "paging": true,
       "info": true,
-
-      // Konfigurasi Tombol Excel
       "buttons": [
         {
           extend: 'excel',
-          text: '<i class="fas fa-file-excel"></i> Excel',
-          className: 'btn btn-success btn-sm'
+          text: 'Download Excel', // Teks Saja
+          titleAttr: 'Download Excel',
+          className: 'btn btn-success btn-sm' // btn-sm + CSS height:32px = SEJAJAR
         }
       ],
-
-      // Bahasa Indonesia
       "language": {
-        "search": "", // Hapus label "Search" biar hemat tempat
-        "searchPlaceholder": "Cari data...",
-        "lengthMenu": "_MENU_", // Hapus label "Show entries"
-        "info": "Menampilkan _START_ sd _END_ dari _TOTAL_ data",
-        "paginate": {
-          "previous": "Sebelumnya",
-          "next": "Selanjutnya"
-        }
+        "search": "",
+        "searchPlaceholder": "Cari...",
+        "lengthMenu": "_MENU_",
+        "info": "Show _START_-_END_ of _TOTAL_",
+        "paginate": { "previous": "<", "next": ">" }
+      },
+
+      // Saat tabel siap, pindahkan filter ke Header
+      "initComplete": function () {
+        var filterContent = $("#my-filter-source").html();
+        $("#my-filter-placeholder").html(filterContent);
+        $("#my-filter-source").remove();
+
+        // Jalankan logika dropdown setelah elemen dipindah
+        bindFilterEvents();
       }
     });
+
+    // --- FUNGSI LOGIKA FILTER DROPDOWN ---
+    function bindFilterEvents() {
+      const unitSelect = $('#pilihUnit');
+      const motorSelect = $('#pilihMotor');
+
+      function populateMotor(unit, selectedMotor = null) {
+        motorSelect.empty();
+        if (unit && dataMotor[unit]) {
+          motorSelect.prop('disabled', false);
+          motorSelect.append('<option value="">-- Pilih Motor --</option>');
+          dataMotor[unit].forEach(function (motorName) {
+            const isSelected = (selectedMotor === motorName) ? 'selected' : '';
+            motorSelect.append(`<option value="${motorName}" ${isSelected}>${motorName}</option>`);
+          });
+        } else {
+          motorSelect.prop('disabled', true);
+          motorSelect.append('<option value="">-- Pilih Motor --</option>');
+        }
+      }
+
+      unitSelect.change(function () {
+        const val = $(this).val();
+        populateMotor(val);
+        localStorage.setItem('mon_selectedUnit', val);
+        localStorage.removeItem('mon_selectedMotor');
+      });
+
+      motorSelect.change(function () {
+        localStorage.setItem('mon_selectedMotor', $(this).val());
+      });
+
+      $('#btnRefresh').click(function () {
+        window.location.reload();
+      });
+
+      // LOAD SAVED DATA (Agar tidak hilang saat refresh)
+      const savedUnit = localStorage.getItem('mon_selectedUnit');
+      const savedMotor = localStorage.getItem('mon_selectedMotor');
+
+      if (savedUnit) {
+        unitSelect.val(savedUnit);
+        populateMotor(savedUnit, savedMotor);
+      }
+    }
+
   });
 </script>
 
