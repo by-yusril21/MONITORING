@@ -68,7 +68,7 @@ if ($delete == true) {
 
   // 1. DATA MOTOR
   const dataMotor = {
-    "6KV": [
+    "C6KV": [
       "BOILER FEED WATER PUMP A",
       "BOILER FEED WATER PUMP B",
       "COAL MILL C",
@@ -79,7 +79,7 @@ if ($delete == true) {
       "SEA WATER INTAKE PUMP A",
       "SEA WATER INTAKE PUMP C"
     ],
-    "380": [
+    "C380": [
       "EJECTOR PUMP A",
       "EJECTOR PUMP B",
       "PULVERIZED COAL FAN C",
@@ -89,7 +89,10 @@ if ($delete == true) {
       "IGNITER AIR FAN C",
       "BLOWER PFISTER C",
       "GAS AIR HEATER C"
-    ]
+    ],
+    "D6KV": [],
+    "D380": [],
+    "UTILITY": []
   };
 
   $(document).ready(function () {

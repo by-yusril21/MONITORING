@@ -58,8 +58,11 @@ $columns = [
           
           <select id="pilihUnit" class="form-control custom-select-sm custom-toolbar-item" style="width: 150px;">
               <option value="">-- Pilih Unit --</option>
-              <option value="6KV">PLTU UNIT C 6KV</option>
-              <option value="380">PLTU UNIT C 380</option>
+              <option value="C6KV">PLTU UNIT C 6KV</option>
+              <option value="C380">PLTU UNIT C 380</option>
+              <option value="D6KV">PLTU UNIT D 6KV</option>
+              <option value="D380">PLTU UNIT D 380</option>
+              <option value="UTILITY">PLTU UNIT UTILITY</option>
           </select>
 
           <select id="pilihMotor" class="form-control custom-select-sm custom-toolbar-item" style="width: 220px;" disabled>
