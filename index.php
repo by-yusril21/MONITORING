@@ -72,8 +72,8 @@ if (isset($_GET['page']) && file_exists("page/" . $_GET['page'] . ".php")) {
 
     $("#example1").DataTable({
       "dom": "<'row m-0 bg-white border-bottom-0 p-2 align-items-center'" +
-        "<'col-md-5 d-flex align-items-center' <'#my-filter-placeholder'>>" +
-        "<'col-md-7 d-flex justify-content-end align-items-center' f l B >>" +
+        "<'col-sm-12 col-md-6 d-flex align-items-center' <'#my-filter-placeholder'>>" +
+        "<'col-sm-12 col-md-6 d-flex justify-content-end align-items-center' f l B >>" +
         "<'row m-0'<'col-12 p-0'tr>>" +
         "<'row m-0 p-2 bg-white'<'col-md-5'i><'col-md-7'p>>",
 
@@ -280,11 +280,23 @@ if (isset($_GET['page']) && file_exists("page/" . $_GET['page'] . ".php")) {
         updateHeaderTitle();
       });
 
-      $('#btnRefresh').click(function () {
+      // Gunakan delegasi event agar lebih aman meski elemen dipindah-pindah
+      $(document).on('click', '#btnRefresh', function (e) {
+        e.preventDefault();
+        e.stopPropagation(); // Hentikan gangguan dari elemen induk
+
+        const unitSelect = $('#pilihUnit');
+        const motorSelect = $('#pilihMotor');
         const unit = unitSelect.val();
         const motor = motorSelect.val();
-        if (unit && motor) loadDataFromSheet(unit, motor);
-        else window.location.reload();
+
+        if (unit && motor) {
+          console.log("Refreshing data for:", unit, motor);
+          loadDataFromSheet(unit, motor);
+        } else {
+          toastr.info("Pilih Unit dan Motor terlebih dahulu untuk refresh data spesifik.");
+          // Opsi: window.location.reload(); jika ingin refresh total
+        }
       });
 
       const savedUnit = localStorage.getItem('mon_selectedUnit');

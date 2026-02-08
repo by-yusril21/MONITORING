@@ -91,6 +91,25 @@
     margin-bottom: 0 !important;
     font-size: 14px !important;
   }
+
+  /* Pastikan area filter tidak tertutup elemen lain */
+  #my-filter-placeholder {
+      position: relative;
+      z-index: 10;
+  }
+
+  #btnRefresh {
+      position: relative;
+      z-index: 11;
+      cursor: pointer;
+      white-space: nowrap;
+  }
+
+  /* Memastikan toolbar DataTables tidak saling tumpang tindih */
+  .dataTables_wrapper .row {
+      width: 100%;
+      margin: 0;
+  }
 </style>
 
 <?php
@@ -120,7 +139,7 @@ $columns = [
           </select>
 
           <button type="button" id="btnRefresh" class="btn btn-info btn-sm" title="Refresh Data">
-              <i class="fas fa-sync-alt"></i>
+           Update
           </button>
       </div>
   </div>
