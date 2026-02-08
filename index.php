@@ -39,6 +39,7 @@ if (isset($_GET['page']) && file_exists("page/" . $_GET['page'] . ".php")) {
 <script src="plugins/toastr/toastr.min.js"></script>
 <script src="dist/js/adminlte.min.js"></script>
 <script src="dist/js/tabel-motor.js"></script>
+<script src="dist/js/inputData-motor.js"></script>
 
 <?php if ($delete)
   echo "<script>toastr.success('Data berhasil dihapus.');</script>"; ?>

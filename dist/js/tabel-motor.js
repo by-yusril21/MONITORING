@@ -1,4 +1,4 @@
-const SCRIPT_URLS = {
+window.SCRIPT_URLS = {
   C6KV: "https://script.google.com/macros/s/AKfycbxEad_-Wnmvrc5is1POvpdkr7OVEegX7KtNZlql1vhRukATPGgu2LLHza_dJXG2Qw/exec",
   C380: "https://script.google.com/macros/s/AKfycbw3Jw1GMtoIHeePHQv_hy6oeY7TkIPjdI4n9VI2m6T91WeztL5WDpA8VBbbQCr_OKVO/exec",
   D6KV: "",
