@@ -1,40 +1,29 @@
 <?php
 session_start();
-// Inisialisasi variabel notifikasi
 $delete = false;
 $deleteTerminal = false;
 $reset_id = false;
 
-// 1. Cek Login (Wajib ada di paling atas)
 if (!isset($_SESSION['username'])) {
   echo "<script> location.href='login.php'; </script>";
   exit;
 }
 
-// 2. Include Konfigurasi Database & Bagian Layout
 include "config/database.php";
-include "inc/header.php";   // Pastikan file ini memuat CSS AdminLTE & DataTables
-include "inc/navbar.php";   // Navbar yang baru (Dark Mode & Judul Dinamis)
+include "inc/header.php";
+include "inc/navbar.php";
 include "inc/sidebar.php";
 include "inc/alerts.php";
 
-// 3. Logika Halaman Dinamis (Routing)
-if (isset($_GET['page'])) {
-  $page = $_GET['page'];
-  // Cek apakah file page benar-benar ada
-  if (file_exists("page/" . $page . ".php")) {
-    include "page/" . $page . ".php";
-  } else {
-    include "page/dashboard.php"; // Halaman default jika tidak ketemu
-  }
+if (isset($_GET['page']) && file_exists("page/" . $_GET['page'] . ".php")) {
+  include "page/" . $_GET['page'] . ".php";
 } else {
-  include "page/dashboard.php"; // Halaman default awal
+  include "page/dashboard.php";
 }
 ?>
 
 <script src="plugins/jquery/jquery.min.js"></script>
 <script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
-
 <script src="plugins/datatables/jquery.dataTables.min.js"></script>
 <script src="plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
 <script src="plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
@@ -47,60 +36,33 @@ if (isset($_GET['page'])) {
 <script src="plugins/datatables-buttons/js/buttons.html5.min.js"></script>
 <script src="plugins/datatables-buttons/js/buttons.print.min.js"></script>
 <script src="plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
-
 <script src="plugins/toastr/toastr.min.js"></script>
 <script src="dist/js/adminlte.min.js"></script>
 
-<?php
-if ($delete == true) {
-  echo "<script>toastr.success('Data berhasil dihapus.');</script>";
-} else if ($reset_id == true) {
-  echo "<script>toastr.success('Data di-reset.');</script>";
-}
-?>
+<?php if ($delete)
+  echo "<script>toastr.success('Data berhasil dihapus.');</script>"; ?>
 
 <script>
-  // --- KONFIGURASI GOOGLE SHEET (MULTI-URL) ---
-  // Masukkan Link Web App untuk masing-masing Unit di sini
   const SCRIPT_URLS = {
     "C6KV": "https://script.google.com/macros/s/AKfycbxEad_-Wnmvrc5is1POvpdkr7OVEegX7KtNZlql1vhRukATPGgu2LLHza_dJXG2Qw/exec",
     "C380": "https://script.google.com/macros/s/AKfycbw3Jw1GMtoIHeePHQv_hy6oeY7TkIPjdI4n9VI2m6T91WeztL5WDpA8VBbbQCr_OKVO/exec",
-
-    // Unit lain bisa diisi nanti jika sudah ada linknya
     "D6KV": "",
     "D380": "",
     "UTILITY": ""
   };
-
   const API_TOKEN = "SemenTonasa2026";
 
-  // 1. DATA MOTOR (SESUAIKAN DENGAN NAMA SHEET DI SPREADSHEET)
   const dataMotor = {
-    // UNIT C 6KV
     "C6KV": [
-      "BOILER FEED WATER PUMP A",
-      "BOILER FEED WATER PUMP B",
-      "COAL MILL C",
-      "FORCED DRAFT FAN C",
-      "PULVERIZED FAN C",
-      "INDUCED DRAFT FAN C",
-      "VENT GAS FAN C",
-      "SEA WATER INTAKE PUMP A",
-      "SEA WATER INTAKE PUMP C"
+      "BOILER FEED WATER PUMP A", "BOILER FEED WATER PUMP B", "COAL MILL C",
+      "FORCED DRAFT FAN C", "PULVERIZED FAN C", "INDUCED DRAFT FAN C",
+      "VENT GAS FAN C", "SEA WATER INTAKE PUMP A", "SEA WATER INTAKE PUMP C"
     ],
-    // UNIT C 380V
     "C380": [
-      "EJECTOR PUMP A",
-      "EJECTOR PUMP B",
-      "PULVERIZED COAL FAN C",
-      "MILL SEAL AIR FAN C",
-      "CONDENSATE PUMP A",
-      "CONDENSATE PUMP B",
-      "IGNITER AIR FAN C",
-      "BLOWER PFISTER C",
-      "GAS AIR HEATER C"
+      "EJECTOR PUMP A", "EJECTOR PUMP B", "PULVERIZED COAL FAN C",
+      "MILL SEAL AIR FAN C", "CONDENSATE PUMP A", "CONDENSATE PUMP B",
+      "IGNITER AIR FAN C", "BLOWER PFISTER C", "GAS AIR HEATER C"
     ],
-    // UNIT LAIN (Placeholder)
     "D6KV": ["BOILER FEED WATER PUMP D-A", "BOILER FEED WATER PUMP D-B"],
     "D380": ["CONDENSATE PUMP D-A", "CONDENSATE PUMP D-B"],
     "UTILITY": ["COMPRESSOR HOUSE", "CHLORINATION PLANT", "WATER TREATMENT PLANT", "WASTE WATER TREATMENT PLANT", "AUXILIARY BOILER", "EMERGENCY DIESEL GENERATOR"]
@@ -108,11 +70,10 @@ if ($delete == true) {
 
   $(document).ready(function () {
 
-    // --- INISIALISASI DATATABLES ---
     $("#example1").DataTable({
-      "dom": "<'row m-0 bg-white border-bottom p-2 align-items-center'" +
-        "<'col-md-7 d-flex align-items-center' <'#my-filter-placeholder'>>" +
-        "<'col-md-5 d-flex align-items-center justify-content-end' f l B>>" +
+      "dom": "<'row m-0 bg-white border-bottom-0 p-2 align-items-center'" +
+        "<'col-md-5 d-flex align-items-center' <'#my-filter-placeholder'>>" +
+        "<'col-md-7 d-flex justify-content-end align-items-center' f l B >>" +
         "<'row m-0'<'col-12 p-0'tr>>" +
         "<'row m-0 p-2 bg-white'<'col-md-5'i><'col-md-7'p>>",
 
@@ -124,8 +85,12 @@ if ($delete == true) {
       "paging": true,
       "info": true,
       "processing": true,
-      "ordering": true,
-      "order": [[0, "asc"]],
+      "ordering": false, // Sorting Mati Total
+
+      "columnDefs": [
+        { "defaultContent": "-", "targets": "_all" }
+        // Kita tidak set width di JS, tapi mengandalkan padding CSS di dashboard.php
+      ],
 
       "lengthMenu": [
         [5, 10, 25, 50, -1],
@@ -135,7 +100,7 @@ if ($delete == true) {
       "buttons": [
         {
           extend: 'excel',
-          text: 'Download Excel',
+          text: '<i class="fas fa-file-excel"></i> Excel',
           className: 'btn btn-success btn-sm'
         }
       ],
@@ -143,9 +108,13 @@ if ($delete == true) {
         "search": "",
         "searchPlaceholder": "Cari data...",
         "lengthMenu": "_MENU_",
-        "processing": "<i class='fas fa-spinner fa-spin'></i> Mengambil Data...",
-        "emptyTable": "Silakan Pilih Unit dan Motor terlebih dahulu"
+        "processing": "<i class='fas fa-spinner fa-spin'></i> Loading...",
+        "emptyTable": "Silakan Pilih Unit dan Motor terlebih dahulu",
+        "zeroRecords": "Data tidak ditemukan",
+        "info": "Menampilkan _START_ s/d _END_ dari _TOTAL_ data",
+        "paginate": { "previous": "Kembali", "next": "Lanjut" }
       },
+
       "initComplete": function () {
         var filterContent = $("#my-filter-source").html();
         if (filterContent) {
@@ -156,7 +125,6 @@ if ($delete == true) {
       }
     });
 
-    // Event Listener: Ganti Jumlah Data
     $('#example1').on('length.dt', function (e, settings, len) {
       const currentUnit = localStorage.getItem('mon_selectedUnit');
       const currentMotor = localStorage.getItem('mon_selectedMotor');
@@ -165,51 +133,35 @@ if ($delete == true) {
       }
     });
 
-    // --- FUNGSI LOAD DATA (DENGAN LOGIKA URL DINAMIS) ---
     function loadDataFromSheet(unit, sheetName) {
       if (!unit || !sheetName) return;
-
-      // Ambil URL berdasarkan Unit yang dipilih
       const targetURL = SCRIPT_URLS[unit];
-
-      if (!targetURL) {
-        toastr.error("Database untuk Unit ini belum dikonfigurasi.");
-        return;
-      }
+      if (!targetURL) { toastr.error("Link Database belum ada."); return; }
 
       var dt = $("#example1").DataTable();
       var limitData = dt.page.len();
 
       dt.clear().draw();
 
-      // Gunakan URL yang sesuai
       const url = `${targetURL}?token=${API_TOKEN}&sheet=${encodeURIComponent(sheetName)}`;
 
       fetch(url)
         .then(response => response.json())
         .then(data => {
-          if (!Array.isArray(data) || data.length === 0) {
-            toastr.warning("Sheet kosong atau tidak ditemukan.");
-            return;
-          }
+          if (!Array.isArray(data) || data.length === 0) { toastr.warning("Data tidak ditemukan."); return; }
 
           const headers = data[0];
           var rows = data.slice(1);
 
-          if (rows.length === 0) {
-            toastr.info("Data belum tersedia.");
-            return;
-          }
+          if (rows.length === 0) { toastr.info("Data kosong."); return; }
 
-          // --- LIMIT DATA ---
           if (limitData > 0 && rows.length > limitData) {
             rows = rows.slice(rows.length - limitData);
             toastr.info(`Menampilkan ${limitData} data terakhir.`);
           } else {
-            toastr.success(`Memuat seluruh ${rows.length} data.`);
+            toastr.success(`Memuat ${rows.length} data.`);
           }
 
-          // MAPPING KOLOM
           const idxTime = getColIndex(headers, "Timestamp");
           const idxEmail = getColIndex(headers, "Email");
           const idxUnit = getColIndex(headers, "PILIH SALAH SATU");
@@ -264,13 +216,9 @@ if ($delete == true) {
 
           dt.rows.add(formattedData).draw();
         })
-        .catch(error => {
-          console.error('Error Fetching:', error);
-          toastr.error("Gagal koneksi ke Google Sheet.");
-        });
+        .catch(error => { console.error('Error:', error); toastr.error("Gagal koneksi server."); });
     }
 
-    // --- HELPER FUNCTIONS ---
     function getColIndex(headers, keywords) {
       if (!Array.isArray(keywords)) keywords = [keywords];
       for (let i = 0; i < headers.length; i++) {
@@ -282,38 +230,22 @@ if ($delete == true) {
       return -1;
     }
 
-    function safeGet(row, index) {
-      if (index < 0 || !row[index]) return "-";
-      return row[index];
-    }
+    function safeGet(row, index) { return (index < 0 || !row[index]) ? "-" : row[index]; }
 
-    // --- LOGIKA DROPDOWN ---
     function bindFilterEvents() {
       const unitSelect = $('#pilihUnit');
       const motorSelect = $('#pilihMotor');
 
-      // FUNGSI UPDATE JUDUL NAVBAR (BARU)
       function updateHeaderTitle() {
-        var unitText = $("#pilihUnit option:selected").text(); // Ambil Teks Unit
-        var motorText = $("#pilihMotor").val(); // Ambil Nilai Motor
+        var unitText = $("#pilihUnit option:selected").text();
+        var motorText = $("#pilihMotor").val();
         var titleElement = $("#header-title");
-
-        if (unitSelect.val() === "") {
-          titleElement.text("DASHBOARD MONITORING");
-          return;
-        }
-
-        if (motorText === "" || motorText === null) {
-          titleElement.removeClass("dynamic-title");
-          void titleElement.get(0).offsetWidth;
-          titleElement.addClass("dynamic-title");
-          titleElement.text(unitText);
-        } else {
-          titleElement.removeClass("dynamic-title");
-          void titleElement.get(0).offsetWidth;
-          titleElement.addClass("dynamic-title");
-          titleElement.text(unitText + " - " + motorText);
-        }
+        if (unitSelect.val() === "") { titleElement.text("DASHBOARD MONITORING"); return; }
+        if (!motorText) { titleElement.text(unitText); }
+        else { titleElement.text(unitText + " - " + motorText); }
+        titleElement.removeClass("dynamic-title");
+        void titleElement.get(0).offsetWidth;
+        titleElement.addClass("dynamic-title");
       }
 
       function populateMotor(unit, selectedMotor = null) {
@@ -337,48 +269,32 @@ if ($delete == true) {
         localStorage.setItem('mon_selectedUnit', val);
         localStorage.removeItem('mon_selectedMotor');
         $("#example1").DataTable().clear().draw();
-
-        updateHeaderTitle(); // Update Judul
+        updateHeaderTitle();
       });
 
       motorSelect.change(function () {
         const unit = unitSelect.val();
         const motorName = $(this).val();
         localStorage.setItem('mon_selectedMotor', motorName);
-
-        if (unit && motorName) {
-          loadDataFromSheet(unit, motorName);
-        }
-
-        updateHeaderTitle(); // Update Judul
+        if (unit && motorName) loadDataFromSheet(unit, motorName);
+        updateHeaderTitle();
       });
 
       $('#btnRefresh').click(function () {
         const unit = unitSelect.val();
         const motor = motorSelect.val();
-        if (unit && motor) {
-          loadDataFromSheet(unit, motor);
-        } else {
-          window.location.reload();
-        }
+        if (unit && motor) loadDataFromSheet(unit, motor);
+        else window.location.reload();
       });
 
-      // Load data tersimpan
       const savedUnit = localStorage.getItem('mon_selectedUnit');
       const savedMotor = localStorage.getItem('mon_selectedMotor');
-
       if (savedUnit) {
         unitSelect.val(savedUnit);
         populateMotor(savedUnit, savedMotor);
         if (savedMotor) loadDataFromSheet(savedUnit, savedMotor);
-
-        // Update judul saat load pertama kali
         setTimeout(updateHeaderTitle, 500);
       }
     }
   });
 </script>
-
-</body>
-
-</html>
