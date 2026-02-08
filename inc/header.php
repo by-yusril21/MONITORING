@@ -8,7 +8,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>panel listrik IoT sound system</title>
+  <title>MONITORING_BTG_TONASA</title>
 
   <!-- Google Font: Source Sans Pro -->
   <link rel="stylesheet"
@@ -24,6 +24,8 @@ scratch. This page gets rid of all links and provides the needed markup only.
   <link rel="stylesheet" href="dist/css/adminlte.min.css">
   <!-- Custom overrides (dark-mode tweaks) -->
   <link rel="stylesheet" href="dist/css/custom.css">
+  <link rel="stylesheet" href="dist/css/tabel-motor.css">
+  <link rel="stylesheet" href="dist/css/form-input.css">
 </head>
 
 <body class="hold-transition sidebar-mini">
