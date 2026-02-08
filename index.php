@@ -5,29 +5,30 @@ $delete = false;
 $deleteTerminal = false;
 $reset_id = false;
 
-// 1. Cek Login
+// 1. Cek Login (Wajib ada di paling atas)
 if (!isset($_SESSION['username'])) {
   echo "<script> location.href='login.php'; </script>";
   exit;
 }
 
-// 2. Include Konfigurasi & Layout
+// 2. Include Konfigurasi Database & Bagian Layout
 include "config/database.php";
-include "inc/header.php";
-include "inc/navbar.php";
+include "inc/header.php";   // Pastikan file ini memuat CSS AdminLTE & DataTables
+include "inc/navbar.php";   // Navbar yang baru (Dark Mode & Judul Dinamis)
 include "inc/sidebar.php";
 include "inc/alerts.php";
 
-// 3. Logika Routing Halaman
+// 3. Logika Halaman Dinamis (Routing)
 if (isset($_GET['page'])) {
   $page = $_GET['page'];
+  // Cek apakah file page benar-benar ada
   if (file_exists("page/" . $page . ".php")) {
     include "page/" . $page . ".php";
   } else {
-    include "page/dashboard.php";
+    include "page/dashboard.php"; // Halaman default jika tidak ketemu
   }
 } else {
-  include "page/dashboard.php";
+  include "page/dashboard.php"; // Halaman default awal
 }
 ?>
 
@@ -52,22 +53,30 @@ if (isset($_GET['page'])) {
 
 <?php
 if ($delete == true) {
-  echo "<script>toastr.success('Data sensor berhasil dihapus.');</script>";
-} else if ($deleteTerminal == true) {
-  echo "<script>toastr.success('Data terminal berhasil dihapus.');</script>";
+  echo "<script>toastr.success('Data berhasil dihapus.');</script>";
 } else if ($reset_id == true) {
   echo "<script>toastr.success('Data di-reset.');</script>";
 }
 ?>
 
-<!-- https://script.google.com/macros/s/AKfycbxEad_-Wnmvrc5is1POvpdkr7OVEegX7KtNZlql1vhRukATPGgu2LLHza_dJXG2Qw/exec -->
 <script>
-  // --- KONFIGURASI GOOGLE SHEET ---
-  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxEad_-Wnmvrc5is1POvpdkr7OVEegX7KtNZlql1vhRukATPGgu2LLHza_dJXG2Qw/exec";
+  // --- KONFIGURASI GOOGLE SHEET (MULTI-URL) ---
+  // Masukkan Link Web App untuk masing-masing Unit di sini
+  const SCRIPT_URLS = {
+    "C6KV": "https://script.google.com/macros/s/AKfycbxEad_-Wnmvrc5is1POvpdkr7OVEegX7KtNZlql1vhRukATPGgu2LLHza_dJXG2Qw/exec",
+    "C380": "https://script.google.com/macros/s/AKfycbw3Jw1GMtoIHeePHQv_hy6oeY7TkIPjdI4n9VI2m6T91WeztL5WDpA8VBbbQCr_OKVO/exec",
+
+    // Unit lain bisa diisi nanti jika sudah ada linknya
+    "D6KV": "",
+    "D380": "",
+    "UTILITY": ""
+  };
+
   const API_TOKEN = "SemenTonasa2026";
 
-  // 1. DATA MOTOR
+  // 1. DATA MOTOR (SESUAIKAN DENGAN NAMA SHEET DI SPREADSHEET)
   const dataMotor = {
+    // UNIT C 6KV
     "C6KV": [
       "BOILER FEED WATER PUMP A",
       "BOILER FEED WATER PUMP B",
@@ -79,6 +88,7 @@ if ($delete == true) {
       "SEA WATER INTAKE PUMP A",
       "SEA WATER INTAKE PUMP C"
     ],
+    // UNIT C 380V
     "C380": [
       "EJECTOR PUMP A",
       "EJECTOR PUMP B",
@@ -90,9 +100,10 @@ if ($delete == true) {
       "BLOWER PFISTER C",
       "GAS AIR HEATER C"
     ],
-    "D6KV": [],
-    "D380": [],
-    "UTILITY": []
+    // UNIT LAIN (Placeholder)
+    "D6KV": ["BOILER FEED WATER PUMP D-A", "BOILER FEED WATER PUMP D-B"],
+    "D380": ["CONDENSATE PUMP D-A", "CONDENSATE PUMP D-B"],
+    "UTILITY": ["COMPRESSOR HOUSE", "CHLORINATION PLANT", "WATER TREATMENT PLANT", "WASTE WATER TREATMENT PLANT", "AUXILIARY BOILER", "EMERGENCY DIESEL GENERATOR"]
   };
 
   $(document).ready(function () {
@@ -114,9 +125,8 @@ if ($delete == true) {
       "info": true,
       "processing": true,
       "ordering": true,
-      "order": [[0, "asc"]], // Data lama di atas (No 1), baru di bawah
+      "order": [[0, "asc"]],
 
-      // [TAMBAHAN BARU] MENU PILIHAN JUMLAH DATA (Ada angka 5)
       "lengthMenu": [
         [5, 10, 25, 50, -1],
         [5, 10, 25, 50, "Semua"]
@@ -132,7 +142,7 @@ if ($delete == true) {
       "language": {
         "search": "",
         "searchPlaceholder": "Cari data...",
-        "lengthMenu": "_MENU_", // Label dropdown hanya angka
+        "lengthMenu": "_MENU_",
         "processing": "<i class='fas fa-spinner fa-spin'></i> Mengambil Data...",
         "emptyTable": "Silakan Pilih Unit dan Motor terlebih dahulu"
       },
@@ -146,32 +156,40 @@ if ($delete == true) {
       }
     });
 
-    // Event Listener: Saat user mengganti jumlah "Show Entries"
+    // Event Listener: Ganti Jumlah Data
     $('#example1').on('length.dt', function (e, settings, len) {
+      const currentUnit = localStorage.getItem('mon_selectedUnit');
       const currentMotor = localStorage.getItem('mon_selectedMotor');
-      if (currentMotor) {
-        loadDataFromSheet(currentMotor);
+      if (currentUnit && currentMotor) {
+        loadDataFromSheet(currentUnit, currentMotor);
       }
     });
 
-    // --- FUNGSI LOAD DATA ---
-    function loadDataFromSheet(sheetName) {
-      if (!sheetName) return;
+    // --- FUNGSI LOAD DATA (DENGAN LOGIKA URL DINAMIS) ---
+    function loadDataFromSheet(unit, sheetName) {
+      if (!unit || !sheetName) return;
+
+      // Ambil URL berdasarkan Unit yang dipilih
+      const targetURL = SCRIPT_URLS[unit];
+
+      if (!targetURL) {
+        toastr.error("Database untuk Unit ini belum dikonfigurasi.");
+        return;
+      }
 
       var dt = $("#example1").DataTable();
-
-      // Ambil Limit Data sesuai pilihan "Show Entries"
       var limitData = dt.page.len();
 
       dt.clear().draw();
 
-      const url = `${GOOGLE_SCRIPT_URL}?token=${API_TOKEN}&sheet=${encodeURIComponent(sheetName)}`;
+      // Gunakan URL yang sesuai
+      const url = `${targetURL}?token=${API_TOKEN}&sheet=${encodeURIComponent(sheetName)}`;
 
       fetch(url)
         .then(response => response.json())
         .then(data => {
           if (!Array.isArray(data) || data.length === 0) {
-            toastr.warning("Sheet kosong atau nama sheet tidak sesuai.");
+            toastr.warning("Sheet kosong atau tidak ditemukan.");
             return;
           }
 
@@ -183,11 +201,8 @@ if ($delete == true) {
             return;
           }
 
-          // --- LOGIKA PENGAMBILAN DATA (DATA TERBARU DI BAWAH) ---
-          // Jika user pilih "Semua" (-1), limitData biasanya -1
-
+          // --- LIMIT DATA ---
           if (limitData > 0 && rows.length > limitData) {
-            // Ambil data TERAKHIR (Slice dari ujung) agar yang tampil data terbaru
             rows = rows.slice(rows.length - limitData);
             toastr.info(`Menampilkan ${limitData} data terakhir.`);
           } else {
@@ -225,7 +240,7 @@ if ($delete == true) {
             }
 
             formattedData.push([
-              index + 1, // No Urut
+              index + 1,
               safeGet(row, idxTime),
               safeGet(row, idxEmail),
               safeGet(row, idxUnit),
@@ -277,6 +292,30 @@ if ($delete == true) {
       const unitSelect = $('#pilihUnit');
       const motorSelect = $('#pilihMotor');
 
+      // FUNGSI UPDATE JUDUL NAVBAR (BARU)
+      function updateHeaderTitle() {
+        var unitText = $("#pilihUnit option:selected").text(); // Ambil Teks Unit
+        var motorText = $("#pilihMotor").val(); // Ambil Nilai Motor
+        var titleElement = $("#header-title");
+
+        if (unitSelect.val() === "") {
+          titleElement.text("DASHBOARD MONITORING");
+          return;
+        }
+
+        if (motorText === "" || motorText === null) {
+          titleElement.removeClass("dynamic-title");
+          void titleElement.get(0).offsetWidth;
+          titleElement.addClass("dynamic-title");
+          titleElement.text(unitText);
+        } else {
+          titleElement.removeClass("dynamic-title");
+          void titleElement.get(0).offsetWidth;
+          titleElement.addClass("dynamic-title");
+          titleElement.text(unitText + " - " + motorText);
+        }
+      }
+
       function populateMotor(unit, selectedMotor = null) {
         motorSelect.empty();
         if (unit && dataMotor[unit]) {
@@ -298,30 +337,43 @@ if ($delete == true) {
         localStorage.setItem('mon_selectedUnit', val);
         localStorage.removeItem('mon_selectedMotor');
         $("#example1").DataTable().clear().draw();
+
+        updateHeaderTitle(); // Update Judul
       });
 
       motorSelect.change(function () {
+        const unit = unitSelect.val();
         const motorName = $(this).val();
         localStorage.setItem('mon_selectedMotor', motorName);
-        if (motorName) loadDataFromSheet(motorName);
+
+        if (unit && motorName) {
+          loadDataFromSheet(unit, motorName);
+        }
+
+        updateHeaderTitle(); // Update Judul
       });
 
       $('#btnRefresh').click(function () {
-        const currentMotor = motorSelect.val();
-        if (currentMotor) {
-          loadDataFromSheet(currentMotor);
+        const unit = unitSelect.val();
+        const motor = motorSelect.val();
+        if (unit && motor) {
+          loadDataFromSheet(unit, motor);
         } else {
           window.location.reload();
         }
       });
 
+      // Load data tersimpan
       const savedUnit = localStorage.getItem('mon_selectedUnit');
       const savedMotor = localStorage.getItem('mon_selectedMotor');
 
       if (savedUnit) {
         unitSelect.val(savedUnit);
         populateMotor(savedUnit, savedMotor);
-        if (savedMotor) loadDataFromSheet(savedMotor);
+        if (savedMotor) loadDataFromSheet(savedUnit, savedMotor);
+
+        // Update judul saat load pertama kali
+        setTimeout(updateHeaderTitle, 500);
       }
     }
   });

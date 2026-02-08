@@ -93,29 +93,6 @@ $columns = [
                       <?php endforeach; ?>
                     </tr>
                   </thead>
-                  <tbody>
-                    <tr>
-                      <td class="text-center">1</td>
-                      <td>2023-10-27 08:00:00</td>
-                      <td>teknisi1@tonasa.co.id</td>
-                      <td>Unit A</td>
-                      <td>Sect-01</td>
-                      <td>Normal</td>
-                      <td>65°C</td>
-                      <td>62°C</td>
-                      <td>30°C</td>
-                      <td>800 kW</td>
-                      <td>50%</td>
-                      <td>120 A</td>
-                      <td>Halus</td>
-                      <td>Start</td>
-                      <td>Lengkap</td>
-                      <td>Bersih</td>
-                      <td>OK</td>
-                      <td>Done</td>
-                      <td class="text-center"><span class="badge badge-success">Tercatat</span></td>
-                    </tr>
-                  </tbody>
                 </table>
               </div>
             </div>
