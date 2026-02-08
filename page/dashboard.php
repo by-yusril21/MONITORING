@@ -151,38 +151,38 @@ $columns = [
         </div>
     </section>
 
-    <section id="section-input" class="section-full">
-        <div class="container-fluid px-custom-5 h-100">
-            <div class="card card-custom bg-white">
-                <div class="card-header py-2 bg-light">
-                    <h3 class="card-title text-sm font-weight-bold">
-                        <i class="fas fa-plus-circle mr-1 text-primary"></i> INPUT DATA MONITORING
-                    </h3>
-                </div>
+<section id="section-input" class="section-full" style="min-height: 100vh;">
+    <div class="container-fluid px-custom-5 h-100 py-3">
+        <div class="card card-custom bg-white shadow-sm">
+            <div class="card-header py-2 bg-light">
+                <h3 class="card-title text-sm font-weight-bold">
+                    <i class="fas fa-plus-circle mr-1 text-primary"></i> INPUT DATA MONITORING
+                </h3>
+            </div>
 
-                <form id="formInputMotor" class="flex-fill overflow-auto p-3">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="form-group mb-2">
-                                <label class="form-label-custom">PILIH SALAH SATU</label>
-                                <select name="pilih_salah_satu" class="form-control form-control-sm border-secondary font-weight-bold">
-                                    <option value="PREVENTIVE">PREVENTIVE</option>
-                                    <option value="PREDICTIVE">PREDICTIVE</option>
-                                    <option value="CORRECTIVE">CORRECTIVE</option>
-                                    <option value="LAINNYA">LAINNYA</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group mb-2">
-                                <label class="form-label-custom">SECTION NO</label>
-                                <input type="number" name="section_no" class="form-control form-control-sm border-secondary" placeholder="76767">
-                            </div>
+            <form id="formInputMotor" class="p-3">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="form-group mb-2">
+                            <label class="form-label-custom font-weight-bold">PILIH SALAH SATU</label>
+                            <select name="pilih_salah_satu" id="pilihTipe" class="form-control form-control-sm border-secondary font-weight-bold">
+                                <option value="PREVENTIVE">PREVENTIVE</option>
+                                <option value="PREDICTIVE">PREDICTIVE</option>
+                                <option value="CORRECTIVE">CORRECTIVE</option>
+                                <option value="LAINNYA">LAINNYA</option>
+                            </select>
                         </div>
                     </div>
+                    <div class="col-md-3">
+                        <div class="form-group mb-2">
+                            <label class="form-label-custom font-weight-bold">SECTION NO</label>
+                            <input type="number" name="section_no" class="form-control form-control-sm border-secondary" placeholder="76767">
+                        </div>
+                    </div>
+                </div>
 
+                <div id="parameterSection">
                     <hr class="my-2">
-
                     <div class="row">
                         <?php 
                         $allInputs = [
@@ -211,30 +211,96 @@ $columns = [
                         </div>
                         <?php endforeach; ?>
                     </div>
+                </div>
 
-                    <div class="row mt-2">
-                        <div class="col-md-10">
-                            <div class="form-group mb-2">
-                                <label class="form-label-custom">ACTION (KETERANGAN)</label>
-                                <textarea name="action" class="form-control form-control-sm border-secondary" rows="1" placeholder="isi keterangan..."></textarea>
+                <hr id="dividerBawah" class="my-2">
+
+                <div class="row align-items-stretch">
+                    
+                    <div class="col-md-6 d-flex flex-column">
+                        <div class="form-group mb-2 d-flex flex-column flex-grow-1">
+                            <label class="form-label-custom font-weight-bold">ACTION (KETERANGAN)</label>
+                            <textarea name="action" class="form-control form-control-sm border-secondary flex-grow-1" 
+                                      style="min-height: 120px;" placeholder="Isi keterangan action di sini..."></textarea>
+                        </div>
+                        <button type="submit" id="btnKirim" class="btn btn-primary btn-sm btn-block shadow-sm font-weight-bold">
+                            <i class="fas fa-paper-plane mr-1"></i> KIRIM DATA MONITORING
+                        </button>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group mb-0 d-flex flex-column h-100">
+                            <label class="form-label-custom text-muted font-weight-bold">
+                                <i class="fas fa-terminal mr-1"></i> CONSOLE LOG STATUS
+                            </label>
+                            <div id="consoleStatus" class="border rounded p-2 bg-dark flex-grow-1" 
+                                 style="min-height: 160px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 11px; color: #00ff00;">
+                                <div id="log-output">
+                                    <div>> [SYSTEM] Dashboard Ready...</div>
+                                    <div>> [STATUS] Connection Stable</div>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-2 d-flex align-items-end">
-                            <button type="submit" id="btnKirim" class="btn btn-primary btn-sm btn-block shadow-sm font-weight-bold mb-2" style="height: 31px;">
-                                <i class="fas fa-paper-plane mr-1"></i> KIRIM
-                            </button>
-                        </div>
                     </div>
-                </form>
-
-                <div class="px-3 pb-3 border-top pt-2" style="background-color: #f8f9fa;">
-                    <label class="form-label-custom mb-1 text-muted"><i class="fas fa-terminal mr-1"></i> CONSOLE LOG STATUS</label>
-                    <div id="consoleStatus">
-                        <div>> System Ready... Scroll down to input data.</div>
-                    </div>
+                    
                 </div>
-            </div>
+            </form>
         </div>
-    </section>
-
+    </div>
+</section>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const pilihTipe = document.getElementById('pilihTipe');
+    const parameterSection = document.getElementById('parameterSection');
+    const dividerBawah = document.getElementById('dividerBawah');
+    const logOutput = document.getElementById('log-output');
+
+    // Fungsi untuk menulis log ke console virtual
+    function writeLog(message, type = "INFO") {
+        const now = new Date();
+        const time = now.getHours().toString().padStart(2, '0') + ":" + 
+                     now.getMinutes().toString().padStart(2, '0') + ":" + 
+                     now.getSeconds().toString().padStart(2, '0');
+        
+        const newEntry = document.createElement('div');
+        newEntry.innerHTML = `> [${time}] [${type}] ${message}`;
+        logOutput.prepend(newEntry);
+    }
+
+    // Fungsi utama pengatur tampilan
+    function updateFormLayout() {
+        const tipe = pilihTipe.value;
+
+        if (tipe === "PREVENTIVE") {
+            parameterSection.style.display = "block";
+            dividerBawah.style.display = "block";
+            writeLog("Mode PREVENTIVE aktif. Menampilkan semua parameter input.", "SYSTEM");
+        } else {
+            parameterSection.style.display = "none";
+            dividerBawah.style.display = "none";
+            writeLog(`Mode ${tipe} aktif. Menyembunyikan parameter teknis.`, "SYSTEM");
+        }
+    }
+
+    // Listener saat select berubah
+    pilihTipe.addEventListener('change', updateFormLayout);
+
+    // Jalankan saat pertama kali load
+    updateFormLayout();
+
+    // Contoh listener saat tombol kirim diklik
+    document.getElementById('formInputMotor').addEventListener('submit', function(e) {
+        e.preventDefault();
+        writeLog("Mengirim data ke server...", "WAIT");
+        
+        // Simulasi pengiriman sukses
+        setTimeout(() => {
+            writeLog("Data berhasil tersimpan di Database.", "SUCCESS");
+            this.reset();
+            updateFormLayout();
+        }, 1000);
+    });
+});
+</script>
