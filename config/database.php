@@ -4,7 +4,7 @@ $username = "root";
 $password = "";
 $database = "panellistrik_iot";
 
-$conn = mysqli_connect($servername, $username, $password, $database);
+$conn = mysqli_connect($servername, $username, password: $password, $database);
 
 if(!$conn){
  die("KOneksi gagal:" . mysqli_connect_error());
