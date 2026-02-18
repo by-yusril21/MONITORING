@@ -175,42 +175,57 @@ $columns = [
                     </div>
                     <div class="col-md-3">
                         <div class="form-group mb-2">
-                            <label class="form-label-custom font-weight-bold">SECTION NO</label>
-                            <input type="number" name="section_no" class="form-control form-control-sm border-secondary" placeholder="76767">
+                            <label class="form-label-custom font-weight-bold">SECTION NO (AUTO)</label>
+                            <input type="text" name="section_no" id="inputSectionNo" class="form-control form-control-sm border-secondary font-weight-bold" style="background-color: #e9ecef;" readonly placeholder="Menunggu Data...">
                         </div>
-                    </div>
+                    </div> 
                 </div>
 
                 <div id="parameterSection">
                     <hr class="my-2">
-                    <div class="row">
-                        <?php 
-                        $allInputs = [
-                            ["vibrasi", "Vibrasi/Getaran", "number"], ["temp_de", "Temp. Bearing DE", "number"],
-                            ["temp_nde", "Temp. Bearing NDE", "number"], ["suhu_ruang", "Suhu Ruangan", "number"],
-                            ["beban_gen", "Beban Generator", "number"], ["damper", "Opening Damper", "number"],
-                            ["load_current", "Load Current", "number"], ["bunyi", "Bunyi Motor", "select", ["GOOD", "FAIR", "POOR"]],
-                            ["panel", "Panel Local", "select", ["GOOD", "FAIR", "POOR"]], ["lengkap", "Kelengkapan", "select", ["GOOD", "FAIR", "POOR"]],
-                            ["bersih", "Kebersihan", "select", ["GOOD", "FAIR", "POOR"]], ["ground", "Grounding", "select", ["GOOD", "FAIR", "POOR"]],
-                            ["regrease", "Regreasing", "select", ["BELUM", "SELESAI"]]
-                        ];
-                        foreach($allInputs as $item): ?>
-                        <div class="col-xl-2 col-lg-3 col-md-4 col-6">
-                            <div class="form-group mb-2">
-                                <label class="form-label-custom"><?= $item[1] ?></label>
-                                <?php if($item[2] == "number"): ?>
-                                    <input type="number" step="0.01" name="<?= $item[0] ?>" class="form-control form-control-sm border-secondary" value="0">
-                                <?php else: ?>
-                                    <select name="<?= $item[0] ?>" class="form-control form-control-sm border-secondary">
-                                        <?php foreach($item[3] as $opt): ?>
-                                            <option value="<?= $opt ?>"><?= $opt ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                <?php endif; ?>
-                            </div>
+                   <div class="row">
+                    <?php 
+                    // Format Array: [name_attribute, Label_Tampilan, tipe_input, opsi_dropdown]
+                    $allInputs = [
+                        ["vibrasi", "Vibrasi/Getaran", "number"], 
+                        ["temp_de", "Temp. Bearing DE", "number"],
+                        ["temp_nde", "Temp. Bearing NDE", "number"], 
+                        ["suhu_ruang", "Suhu Ruangan", "number"],
+                        ["beban_gen", "Beban Generator", "number"], 
+                        ["damper", "Opening Damper", "number"],
+                        ["load_current", "Load Current", "number"], 
+                        // Dropdown
+                        ["bunyi", "Bunyi Motor", "select", ["GOOD", "FAIR", "POOR"]],
+                        ["panel", "Panel Local", "select", ["GOOD", "FAIR", "POOR"]], 
+                        ["lengkap", "Kelengkapan", "select", ["GOOD", "FAIR", "POOR"]],
+                        ["bersih", "Kebersihan", "select", ["GOOD", "FAIR", "POOR"]], 
+                        ["ground", "Grounding", "select", ["GOOD", "FAIR", "POOR"]],
+                        ["regrease", "Regreasing", "select", ["BELUM", "SELESAI"]]
+                    ];
+
+                    foreach($allInputs as $item): ?>
+                    <div class="col-xl-2 col-lg-3 col-md-4 col-6">
+                        <div class="form-group mb-2">
+                            <label class="form-label-custom"><?= $item[1] ?></label>
+                            
+                            <?php if($item[2] == "number"): ?>
+                                <input type="number" step="0.01" name="<?= $item[0] ?>" 
+                                    class="form-control form-control-sm border-secondary" 
+                                    placeholder="-">
+                            
+                            <?php else: ?>
+                                <select name="<?= $item[0] ?>" class="form-control form-control-sm border-secondary">
+                                    <option value="" selected disabled>- Pilih -</option>
+                                    <?php foreach($item[3] as $opt): ?>
+                                        <option value="<?= $opt ?>"><?= $opt ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            <?php endif; ?>
+
                         </div>
-                        <?php endforeach; ?>
                     </div>
+                    <?php endforeach; ?>
+                </div>
                 </div>
 
                 <hr id="dividerBawah" class="my-2">
@@ -223,7 +238,7 @@ $columns = [
                             <textarea name="action" class="form-control form-control-sm border-secondary flex-grow-1" 
                                       style="min-height: 120px;" placeholder="Isi keterangan action di sini..."></textarea>
                         </div>
-                        <button type="submit" id="btnKirim" class="btn btn-primary btn-sm btn-block shadow-sm font-weight-bold">
+                        <button type="button" id="btnKirim" class="btn btn-primary btn-sm btn-block shadow-sm font-weight-bold">
                             <i class="fas fa-paper-plane mr-1"></i> KIRIM DATA MONITORING
                         </button>
                     </div>
@@ -276,11 +291,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (tipe === "PREVENTIVE") {
             parameterSection.style.display = "block";
             dividerBawah.style.display = "block";
-            writeLog("Mode PREVENTIVE aktif. Menampilkan semua parameter input.", "SYSTEM");
+            writeLog("Mode PREVENTIVE", "SYSTEM");
         } else {
             parameterSection.style.display = "none";
             dividerBawah.style.display = "none";
-            writeLog(`Mode ${tipe} aktif. Menyembunyikan parameter teknis.`, "SYSTEM");
+            writeLog(`Mode ${tipe}`, "SYSTEM");
         }
     }
 

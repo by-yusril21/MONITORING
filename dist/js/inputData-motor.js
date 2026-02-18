@@ -1,13 +1,14 @@
 /**
  * File: inputData-motor.js
- * Perbaikan: Menggunakan pengambilan elemen dinamis dan pengecekan Global Config.
+ * Fitur:
+ * - TRIGGER: Button Click (Bukan Form Submit) -> Anti Jebol
+ * - LOGIC: Strict Validation
+ * - UI: Toastr & Auto Refresh
  */
 
 document.addEventListener("DOMContentLoaded", function () {
-  // 1. Inisialisasi Password/Token
   const PASSWORD_RAHASIA = "SemenTonasa2026";
 
-  // 2. Definisi Elemen Form & UI
   const formInput = document.getElementById("formInputMotor");
   const logOutput = document.getElementById("log-output");
   const btnKirim = document.getElementById("btnKirim");
@@ -15,38 +16,29 @@ document.addEventListener("DOMContentLoaded", function () {
   const parameterSection = document.getElementById("parameterSection");
   const dividerBawah = document.getElementById("dividerBawah");
 
-  // ==========================================
-  // 3. FUNGSI LOG terminal (UI)
-  // ==========================================
+  // --- 1. Fungsi Log UI ---
   function writeLog(message, type = "INFO") {
     const now = new Date();
-    const time =
-      now.getHours().toString().padStart(2, "0") +
-      ":" +
-      now.getMinutes().toString().padStart(2, "0") +
-      ":" +
-      now.getSeconds().toString().padStart(2, "0");
-
+    const time = now.toLocaleTimeString("id-ID", { hour12: false });
     let color = "#cccccc";
     if (type === "ERROR") color = "#ff4d4d";
     if (type === "SUCCESS") color = "#00ff00";
     if (type === "WAIT") color = "#ffff00";
     if (type === "SYSTEM") color = "#00bfff";
+    if (type === "WARNING") color = "#ffc107";
 
     const newEntry = document.createElement("div");
     newEntry.style.color = color;
     newEntry.style.marginBottom = "2px";
+    newEntry.style.fontFamily = "'Courier New', monospace";
     newEntry.innerHTML = `> [${time}] [${type}] ${message}`;
     logOutput.prepend(newEntry);
   }
 
-  // ==========================================
-  // 4. LOGIKA TAMPILAN (HIDE/SHOW PARAMETER)
-  // ==========================================
+  // --- 2. Layout Handler ---
   function updateFormLayout() {
     if (!pilihTipe) return;
-    const tipe = pilihTipe.value;
-    if (tipe === "PREVENTIVE") {
+    if (pilihTipe.value === "PREVENTIVE") {
       parameterSection.style.display = "block";
       dividerBawah.style.display = "block";
     } else {
@@ -60,111 +52,175 @@ document.addEventListener("DOMContentLoaded", function () {
     updateFormLayout();
   }
 
-  // ==========================================
-  // 5. LOGIKA PENGIRIMAN DATA (SUBMIT)
-  // ==========================================
-  if (formInput) {
-    formInput.addEventListener("submit", function (e) {
-      e.preventDefault();
+  // --- 3. PROSES KLIK TOMBOL (GANTI DARI SUBMIT KE CLICK) ---
+  if (btnKirim) {
+    // Kita matikan semua event submit bawaan form agar aman
+    if (formInput) {
+      formInput.onsubmit = function (e) {
+        e.preventDefault();
+        return false;
+      };
+    }
 
-      // A. AMBIL ELEMEN DROPDOWN SECARA REAL-TIME (Mencari ulang di DOM)
-      // Ini untuk memastikan data terambil meski dropdown ada di section lain
+    btnKirim.onclick = function (e) {
+      e.preventDefault(); // Mencegah reload halaman apapun yang terjadi
+
+      // Ambil Data
       const elUnit = document.getElementById("pilihUnit");
       const elMotor = document.getElementById("pilihMotor");
 
       const valUnit = elUnit ? elUnit.value : "";
       const valMotor = elMotor ? elMotor.value : "";
+      const tipeMain = pilihTipe.value;
+      const isPreventive = tipeMain === "PREVENTIVE";
 
-      // B. AMBIL URL DARI GLOBAL CONFIG (tabel-motor.js)
-      // Pastikan di tabel-motor.js menggunakan: window.SCRIPT_URLS = { ... }
-      const targetURL =
-        window.SCRIPT_URLS && valUnit ? window.SCRIPT_URLS[valUnit] : undefined;
+      writeLog(`--- Klik Terdeteksi (${tipeMain}) ---`, "SYSTEM");
 
-      // --- DEBUGGING LOG KE CONSOLE BROWSER ---
-      console.log("=== PROSES PENGIRIMAN DATA ===");
-      console.log("1. Elemen Unit Terdeteksi:", elUnit ? "YA" : "TIDAK");
-      console.log("2. Elemen Motor Terdeteksi:", elMotor ? "YA" : "TIDAK");
-      console.log("3. Nilai Unit:", valUnit);
-      console.log("4. Nilai Motor:", valMotor);
-      console.log("5. URL Target:", targetURL);
+      // --- TAHAP 1: VALIDASI ---
+      let pesanError = "";
 
-      // C. VALIDASI SEBELUM KIRIM
-      if (!valUnit || valUnit === "") {
-        writeLog("GAGAL: Unit belum dipilih pada filter atas!", "ERROR");
-        alert("Silakan pilih UNIT pada dropdown filter terlebih dahulu.");
-        return;
+      // 1. Cek Unit/Motor
+      if (!valUnit || valUnit === "") pesanError = "Unit belum dipilih!";
+      else if (!valMotor || valMotor === "")
+        pesanError = "Motor belum dipilih!";
+      else {
+        const targetURL =
+          window.SCRIPT_URLS && valUnit
+            ? window.SCRIPT_URLS[valUnit]
+            : undefined;
+        if (!targetURL) pesanError = "URL Script Unit ini tidak ditemukan!";
       }
 
-      if (!valMotor || valMotor === "") {
-        writeLog("GAGAL: Motor belum dipilih pada filter atas!", "ERROR");
-        alert("Silakan pilih MOTOR pada dropdown filter terlebih dahulu.");
-        return;
+      // 2. Cek Action
+      if (!pesanError) {
+        const formData = new FormData(formInput);
+        const actionVal = formData.get("action");
+        if (!actionVal || actionVal.trim() === "") {
+          pesanError = "Kolom ACTION (Keterangan) Wajib Diisi!";
+        }
       }
 
-      if (!targetURL) {
-        writeLog(
-          `ERROR: URL Apps Script untuk unit [${valUnit}] tidak ditemukan!`,
-          "ERROR",
-        );
-        console.error("Konfigurasi URL tidak ditemukan untuk unit:", valUnit);
-        return;
+      // 3. Cek Preventive
+      if (!pesanError && isPreventive) {
+        const formData = new FormData(formInput);
+
+        // Cek Angka
+        const numericFields = [
+          "vibrasi",
+          "temp_de",
+          "temp_nde",
+          "suhu_ruang",
+          "beban_gen",
+          "damper",
+          "load_current",
+        ];
+        for (let name of numericFields) {
+          let val = formData.get(name);
+          if (val === null || val.trim() === "") {
+            pesanError = `Data Teknis (Angka) belum lengkap!`;
+            break;
+          }
+        }
+
+        // Cek Dropdown
+        if (!pesanError) {
+          const dropdownFields = [
+            "bunyi",
+            "panel",
+            "lengkap",
+            "bersih",
+            "ground",
+            "regrease",
+          ];
+          for (let name of dropdownFields) {
+            let val = formData.get(name);
+            if (val === null || val === "") {
+              pesanError = `Pilihan Dropdown belum dipilih semua!`;
+              break;
+            }
+          }
+        }
       }
 
-      // D. PERSIAPAN PAYLOAD (DATA FORM)
-      const formData = new FormData(formInput);
-      const payload = {
-        token: PASSWORD_RAHASIA,
-        targetSheet: valMotor,
-        maintenanceType: formData.get("pilih_salah_satu"),
-        sectionNo: formData.get("section_no"),
-        actions: formData.get("action"),
+      // --- TAHAP 2: EKSEKUSI ---
 
-        // Ambil data teknis, jika kosong/null beri tanda "-"
-        vibrasi: formData.get("vibrasi") || "-",
-        tempDE: formData.get("temp_de") || "-",
-        tempNDE: formData.get("temp_nde") || "-",
-        suhuRuang: formData.get("suhu_ruang") || "-",
-        beban: formData.get("beban_gen") || "-",
-        damper: formData.get("damper") || "-",
-        amper: formData.get("load_current") || "-",
-        bunyi: formData.get("bunyi") || "-",
-        panel: formData.get("panel") || "-",
-        kelengkapan: formData.get("lengkap") || "-",
-        kebersihan: formData.get("bersih") || "-",
-        grounding: formData.get("ground") || "-",
-        regreasing: formData.get("regrease") || "-",
-      };
+      if (pesanError !== "") {
+        // >>> STOP: JANGAN KIRIM <<<
+        toastr.warning(pesanError);
+        writeLog("GAGAL: " + pesanError, "WARNING");
+        return false;
+      } else {
+        // >>> AMAN: KIRIM DATA <<<
+        const formData = new FormData(formInput);
+        const targetURL = window.SCRIPT_URLS[valUnit];
 
-      // E. PROSES EKSEKUSI KIRIM (FETCH)
-      writeLog(`Menghubungkan ke server ${valUnit}...`, "WAIT");
-      btnKirim.disabled = true;
-      btnKirim.innerHTML = '<i class="fas fa-spinner fa-spin"></i> MENGIRIM...';
+        const getGeneral = (name) => {
+          let val = formData.get(name);
+          return val && val.trim() !== "" ? val : "-";
+        };
 
-      fetch(targetURL, {
-        method: "POST",
-        mode: "no-cors", // Penting untuk bypass CORS Google Apps Script
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      })
-        .then(() => {
-          // Sukses (Mode no-cors selalu masuk ke .then selama request terkirim)
-          writeLog(`SUKSES: Data tersimpan di Sheet [${valMotor}]`, "SUCCESS");
-          formInput.reset();
-          updateFormLayout();
+        const getTeknis = (name) => {
+          if (isPreventive) {
+            let val = formData.get(name);
+            return val && val.trim() !== "" ? val : "-";
+          } else {
+            return "--";
+          }
+        };
+
+        const payload = {
+          token: PASSWORD_RAHASIA,
+          targetSheet: valMotor,
+          maintenanceType: tipeMain,
+          sectionNo: getGeneral("section_no"),
+          actions: getGeneral("action"),
+          vibrasi: getTeknis("vibrasi"),
+          tempDE: getTeknis("temp_de"),
+          tempNDE: getTeknis("temp_nde"),
+          suhuRuang: getTeknis("suhu_ruang"),
+          beban: getTeknis("beban_gen"),
+          damper: getTeknis("damper"),
+          amper: getTeknis("load_current"),
+          bunyi: getTeknis("bunyi"),
+          panel: getTeknis("panel"),
+          kelengkapan: getTeknis("lengkap"),
+          kebersihan: getTeknis("bersih"),
+          grounding: getTeknis("ground"),
+          regreasing: getTeknis("regrease"),
+        };
+
+        writeLog("Data Valid. Mengirim ke server...", "WAIT");
+        btnKirim.disabled = true;
+        btnKirim.innerHTML =
+          '<i class="fas fa-spinner fa-spin"></i> MENGIRIM...';
+
+        fetch(targetURL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
         })
-        .catch((error) => {
-          writeLog("Koneksi gagal: " + error.message, "ERROR");
-          console.error("Fetch Error:", error);
-        })
-        .finally(() => {
-          btnKirim.disabled = false;
-          btnKirim.innerHTML =
-            '<i class="fas fa-paper-plane mr-1"></i> KIRIM DATA MONITORING';
-        });
-    });
-  } else {
-    console.error(
-      "CRITICAL: Form ID 'formInputMotor' tidak ditemukan di halaman ini!",
-    );
+          .then(() => {
+            writeLog("SUKSES: Tersimpan di Database.", "SUCCESS");
+            toastr.success("Data monitoring berhasil disimpan.");
+            formInput.reset();
+            updateFormLayout();
+
+            // Auto Refresh Tabel
+            const btnRefresh = document.getElementById("btnRefresh");
+            if (btnRefresh) btnRefresh.click();
+            else if (window.jQuery) $("#btnRefresh").trigger("click");
+          })
+          .catch((err) => {
+            writeLog("ERROR FETCH: " + err.message, "ERROR");
+            toastr.error("Gagal koneksi: " + err.message);
+          })
+          .finally(() => {
+            btnKirim.disabled = false;
+            btnKirim.innerHTML =
+              '<i class="fas fa-paper-plane mr-1"></i> KIRIM DATA MONITORING';
+          });
+      }
+    };
   }
 });
